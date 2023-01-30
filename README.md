@@ -13,11 +13,15 @@
 ## 起動方法
 
 クローン
+
 1. git clone git@github.com:ryio1010/coin-api.git
 
 Dockerの起動
+
 1. docker-compose build
 2. docker-compose up -d
+
+※Appログ確認 docker logs -f coin_api
 
 ## API実行方法
 
@@ -49,4 +53,6 @@ Dockerの起動
 - コイン送金
     - method : PUT
     - URL : localhost:8081/v1/coin/send
-    - RequestJsonBody : {"sender": "1","receiver": "2","amount": "100"}
+    - RequestJsonBody : {"sender": "1","receiver": "2","amount": "10"}
+
+※コイン追加消費のOperationはADD,USEのみ許可

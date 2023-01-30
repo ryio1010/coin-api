@@ -7,4 +7,5 @@ import (
 type ICoinRepository interface {
 	SelectHistoriesByUserId(uid uint) ([]model.CoinHistory, error)
 	Insert(history *model.CoinHistory) (*model.CoinHistory, error)
+	BatchInsert(histories []*model.CoinHistory) ([]*model.CoinHistory, error)
 }
