@@ -27,7 +27,7 @@ func (u *UserPresenter) OutputUserBalance(balance *model.UserBalanceResponse) er
 	return nil
 }
 
-func (u *UserPresenter) OutputError(err *model.ErrorResponse) error {
-	u.ctx.JSON(err.ErrorCode, err)
-	return nil
+func (u *UserPresenter) OutputError(res *model.ErrorResponse, err error) error {
+	u.ctx.JSON(res.ErrorCode, res)
+	return err
 }

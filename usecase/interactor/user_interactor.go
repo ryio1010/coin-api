@@ -6,6 +6,7 @@ import (
 	"coin-api/domain/repository"
 	"coin-api/usecase/model"
 	"coin-api/usecase/port"
+	"fmt"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/rs/zerolog/log"
@@ -29,8 +30,10 @@ func (u *UserUseCase) RegisterUser(form *model.UserAddForm) error {
 	// formのバリデーション
 	err := form.ValidateUserAddForm()
 	if err != nil {
-		log.Error().Stack().Err(err).Msg("")
-		return u.op.OutputError(model.CreateErrorResponse(http.StatusBadRequest, err.Error()))
+		log.Log().Msg(fmt.Sprintf("バリデーションエラー UserAddForm : %s", common.CreateJsonString(&form)))
+		log.Error().Stack().Err(err)
+
+		return u.op.OutputError(model.CreateErrorResponse(http.StatusBadRequest, err.Error()), err)
 	}
 
 	// パスワードハッシュ化
@@ -45,8 +48,8 @@ func (u *UserUseCase) RegisterUser(form *model.UserAddForm) error {
 	user, err := u.ur.Insert(&target)
 
 	if err != nil {
-		log.Error().Stack().Err(err).Msg("")
-		return u.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, err.Error()))
+		log.Error().Stack().Err(err)
+		return u.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, err.Error()), err)
 	}
 
 	return u.op.OutputUser(model.UserFromDomainModel(user))
@@ -56,8 +59,8 @@ func (u *UserUseCase) GetBalanceByUserId(uid string) error {
 	// uidのバリデーション
 	err := validation.Validate(uid, validation.Required, is.Digit)
 	if err != nil {
-		log.Error().Stack().Err(err).Msg("")
-		return u.op.OutputError(model.CreateErrorResponse(http.StatusBadRequest, err.Error()))
+		log.Error().Stack().Err(err)
+		return u.op.OutputError(model.CreateErrorResponse(http.StatusBadRequest, err.Error()), err)
 	}
 
 	// ユーザー取得処理実行
@@ -65,8 +68,8 @@ func (u *UserUseCase) GetBalanceByUserId(uid string) error {
 	user, err := u.ur.SelectById(uidUint)
 
 	if err != nil {
-		log.Error().Stack().Err(err).Msg("")
-		return u.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, err.Error()))
+		log.Error().Stack().Err(err)
+		return u.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, err.Error()), err)
 	}
 
 	return u.op.OutputUserBalance(model.UserBalanceFromDomainModel(user))

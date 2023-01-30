@@ -41,13 +41,13 @@ func (u *UserController) CreateUser() gin.HandlerFunc {
 		if err != nil {
 			// エラーの場合、ログを出力
 			log.Log().Msg(fmt.Sprintf("バインドエラー UserAddForm : %s", common.CreateJsonString(&form)))
-			log.Error().Err(err).Send()
+			log.Error().Stack().Err(err).Send()
 		}
 
 		// ユーザー登録処理実行
 		err = u.newInputPort(c).RegisterUser(&form)
 		if err != nil {
-			log.Error().Err(err).Send()
+			log.Error().Stack().Err(err).Send()
 		}
 	}
 }
@@ -60,7 +60,7 @@ func (u *UserController) GetBalanceById() gin.HandlerFunc {
 		// コイン残高取得処理実行
 		err := u.newInputPort(c).GetBalanceByUserId(uid)
 		if err != nil {
-			log.Error().Err(err).Send()
+			log.Error().Stack().Err(err).Send()
 		}
 	}
 }

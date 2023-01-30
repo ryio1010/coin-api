@@ -80,7 +80,7 @@ func (c *CoinController) GetHistoryByUserId() gin.HandlerFunc {
 		uid := ctx.Param("userid")
 
 		// コイン履歴取得処理
-		err := c.newInputPort(ctx).SelectHistoryByUserId(uid)
+		err := c.newInputPort(ctx).SelectHistoriesByUserId(uid)
 
 		if err != nil {
 			log.Error().Stack().Err(err).Send()

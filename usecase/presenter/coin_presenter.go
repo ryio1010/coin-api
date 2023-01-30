@@ -32,7 +32,7 @@ func (c *CoinPresenter) OutputCoinSend(coin *model.CoinSendResponse) error {
 	return nil
 }
 
-func (c *CoinPresenter) OutputError(err *model.ErrorResponse) error {
-	c.ctx.JSON(err.ErrorCode, err)
-	return nil
+func (c *CoinPresenter) OutputError(res *model.ErrorResponse, err error) error {
+	c.ctx.JSON(res.ErrorCode, res)
+	return err
 }
