@@ -1,36 +1,38 @@
 package model
 
 import (
+	"coin-api/common/enum"
 	"coin-api/domain/model"
 	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
 	"time"
 )
 
 type CoinAddUseForm struct {
-	UserId    uint   `json:"userid"`
+	UserId    string `json:"userid"`
 	Operation string `json:"operation"`
-	Amount    int    `json:"amount"`
+	Amount    string `json:"amount"`
 }
 
 func (c CoinAddUseForm) ValidateCoinAddUseForm() error {
 	return validation.ValidateStruct(&c,
-		validation.Field(&c.UserId, validation.Required),
-		validation.Field(&c.Operation, validation.Required, validation.In(string(ADD), string(USE))),
-		validation.Field(&c.Amount, validation.Required),
+		validation.Field(&c.UserId, validation.Required, is.Digit),
+		validation.Field(&c.Operation, validation.Required, validation.In(string(enum.ADD), string(enum.USE))),
+		validation.Field(&c.Amount, validation.Required, is.Digit),
 	)
 }
 
 type CoinSendForm struct {
-	Sender   uint `json:"sender"`
-	Receiver uint `json:"receiver"`
-	Amount   int  `json:"amount"`
+	Sender   string `json:"sender"`
+	Receiver string `json:"receiver"`
+	Amount   string `json:"amount"`
 }
 
 func (c CoinSendForm) ValidateCoinSendForm() error {
 	return validation.ValidateStruct(&c,
-		validation.Field(&c.Sender, validation.Required),
-		validation.Field(&c.Receiver, validation.Required),
-		validation.Field(&c.Amount, validation.Required),
+		validation.Field(&c.Sender, validation.Required, is.Digit),
+		validation.Field(&c.Receiver, validation.Required, is.Digit),
+		validation.Field(&c.Amount, validation.Required, is.Digit),
 	)
 }
 
@@ -65,11 +67,11 @@ func CoinResponseFromDomainModel(c *model.CoinHistory, balance int) *CoinRespons
 	return h
 }
 
-func CoinSendResponseFromDomainModel(c *CoinSendForm, balance int) *CoinSendResponse {
+func CoinSendResponseFromDomainModel(sender uint, receiver uint, amount int, balance int) *CoinSendResponse {
 	h := &CoinSendResponse{
-		Sender:        c.Sender,
-		Receiver:      c.Receiver,
-		Amount:        c.Amount,
+		Sender:        sender,
+		Receiver:      receiver,
+		Amount:        amount,
 		SenderBalance: balance,
 	}
 

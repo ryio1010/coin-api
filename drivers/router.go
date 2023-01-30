@@ -16,9 +16,10 @@ const (
 )
 
 func InitRouter() *gin.Engine {
+	// Gin
 	g := gin.Default()
 
-	// DB
+	// DB接続
 	con := database.NewPostgreSQLConnector()
 
 	// User
@@ -31,6 +32,7 @@ func InitRouter() *gin.Engine {
 	cip := interactor.NewCoinUseCase
 	cr := rdb.NewCoinRepository
 
+	// userAPI
 	ug := g.Group(userApiRoot)
 	{
 		uc := controllers.NewUserController(uop, uip, ur, con)
@@ -40,11 +42,12 @@ func InitRouter() *gin.Engine {
 		ug.GET("/:userid", uc.GetBalanceById())
 	}
 
+	// coinAPI
 	cg := g.Group(coinApiRoot)
 	{
 		cc := controllers.NewCoinController(cop, cip, cr, ur, con)
-		// POST AddUseCoinAPI
-		cg.POST("", cc.AddUseCoin())
+		// PUT AddUseCoinAPI
+		cg.PUT("", cc.AddUseCoin())
 		// PUT SendCoinAPI
 		cg.PUT("/send", cc.SendCoin())
 		// GET GetHistoriesById

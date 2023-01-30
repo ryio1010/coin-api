@@ -1,11 +1,13 @@
 package interactor
 
 import (
+	"coin-api/common"
 	models "coin-api/domain/model"
 	"coin-api/domain/repository"
 	"coin-api/usecase/model"
 	"coin-api/usecase/port"
 	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
@@ -50,16 +52,17 @@ func (u *UserUseCase) RegisterUser(form *model.UserAddForm) error {
 	return u.op.OutputUser(model.UserFromDomainModel(user))
 }
 
-func (u *UserUseCase) GetBalanceByUserId(uid uint) error {
+func (u *UserUseCase) GetBalanceByUserId(uid string) error {
 	// uidのバリデーション
-	err := validation.Validate(uid, validation.Required)
+	err := validation.Validate(uid, validation.Required, is.Digit)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg("")
 		return u.op.OutputError(model.CreateErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 
 	// ユーザー取得処理実行
-	user, err := u.ur.SelectById(uid)
+	uidUint := common.StringToUint(uid)
+	user, err := u.ur.SelectById(uidUint)
 
 	if err != nil {
 		log.Error().Stack().Err(err).Msg("")

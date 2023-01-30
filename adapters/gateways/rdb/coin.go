@@ -1,6 +1,7 @@
 package rdb
 
 import (
+	"coin-api/common"
 	"coin-api/domain/model"
 	"coin-api/domain/repository"
 	"fmt"
@@ -37,7 +38,7 @@ func (cr *CoinRepository) Insert(history *model.CoinHistory) (*model.CoinHistory
 	result := cr.DB.Create(history)
 	if result.Error != nil {
 		// エラーの場合、ログを出力
-		log.Log().Msg(fmt.Sprintf("履歴登録処理でエラー発生 履歴 : %s", model.CreateJsonStringFromHistoryModel(history)))
+		log.Log().Msg(fmt.Sprintf("履歴登録処理でエラー発生 履歴 : %s", common.CreateJsonString(history)))
 	}
 
 	return history, result.Error

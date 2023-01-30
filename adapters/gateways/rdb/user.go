@@ -1,6 +1,7 @@
 package rdb
 
 import (
+	"coin-api/common"
 	"coin-api/domain/model"
 	"coin-api/domain/repository"
 	"errors"
@@ -27,7 +28,7 @@ func (ur *UserRepository) SelectById(uid uint) (*model.User, error) {
 	result := ur.DB.First(&user, "id=?", uid)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		// エラーまたはレコードを取得できない場合、ログを出力
-		log.Log().Msg(fmt.Sprintf("ユーザー取得処理でエラー発生 ユーザーID : %d", uid))
+		log.Error().Msg(fmt.Sprintf("ユーザー取得処理でエラー発生 ユーザーID : %d", uid))
 	}
 
 	return &user, result.Error
@@ -43,7 +44,7 @@ func (ur *UserRepository) Insert(user *model.User) (*model.User, error) {
 
 	if result.Error != nil {
 		// エラーの場合、ログを出力
-		log.Log().Msg(fmt.Sprintf("ユーザー取得処理でエラー発生 ユーザー : %s", model.CreateJsonStringFromUserModel(user)))
+		log.Error().Msg(fmt.Sprintf("ユーザー登録処理でエラー発生 ユーザー : %s", common.CreateJsonString(user)))
 	}
 
 	return user, result.Error
@@ -55,7 +56,7 @@ func (ur *UserRepository) Update(user *model.User) (*model.User, error) {
 
 	if result.Error != nil {
 		// エラーの場合、ログを出力
-		log.Log().Msg(fmt.Sprintf("ユーザー更新処理でエラー発生 ユーザー : %s", model.CreateJsonStringFromUserModel(user)))
+		log.Error().Msg(fmt.Sprintf("ユーザー更新処理でエラー発生 ユーザー : %s", common.CreateJsonString(user)))
 	}
 
 	return user, result.Error

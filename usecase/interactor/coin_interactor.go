@@ -1,14 +1,18 @@
 package interactor
 
 import (
+	"coin-api/common"
+	"coin-api/common/enum"
 	models "coin-api/domain/model"
 	"coin-api/domain/repository"
 	"coin-api/usecase/model"
 	"coin-api/usecase/port"
 	"fmt"
 	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/rs/zerolog/log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -30,31 +34,34 @@ func (c *CoinUseCase) AddUseCoin(form *model.CoinAddUseForm) error {
 	// formのバリデーション
 	err := form.ValidateCoinAddUseForm()
 	if err != nil {
-		log.Log().Msg(fmt.Sprintf("バリデーションエラー CoinAddUseForm : %s", model.CreateJsonString(&form)))
-		log.Error().Stack().Err(err).Msg("")
+		log.Log().Msg(fmt.Sprintf("バリデーションエラー CoinAddUseForm : %s", common.CreateJsonString(&form)))
+		log.Error().Stack().Err(err)
+
 		return c.op.OutputError(model.CreateErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 
 	// coin残高処理対象ユーザーの取得
-	user, err := c.userRepo.SelectById(form.UserId)
+	uidUint := common.StringToUint(form.UserId)
+	user, err := c.userRepo.SelectById(uidUint)
 	if err != nil {
 		return c.op.OutputError(model.CreateErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 
-	// 処理区分取得
-	operation := form.Operation
-	if operation == string(model.USE) {
-		if *user.CoinBalance < form.Amount {
+	amountInt, _ := strconv.Atoi(form.Amount)
+	if form.Operation == string(enum.USE) {
+		if *user.CoinBalance < amountInt {
 			// 消費量が残高を上回る場合はエラー
-			log.Log().Msg(fmt.Sprintf("コイン残高不足エラー user : %s", model.CreateJsonString(&user)))
+			log.Log().Msg(fmt.Sprintf("コイン残高不足エラー user : %s", common.CreateJsonString(&user)))
+			log.Error().Stack().Err(err)
+
 			return c.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, "コイン残高不足エラー"))
 		}
 		// 区分がUSEの場合は符号を-に変換
-		form.Amount = -form.Amount
+		amountInt = -amountInt
 	}
 
 	// 残高の算出
-	balance := *user.CoinBalance + form.Amount
+	balance := *user.CoinBalance + amountInt
 	// 残高の更新
 	user.CoinBalance = &balance
 	updated, err := c.userRepo.Update(user)
@@ -64,8 +71,8 @@ func (c *CoinUseCase) AddUseCoin(form *model.CoinAddUseForm) error {
 	target := models.CoinHistory{
 		Operation:          form.Operation,
 		OperationTimestamp: operationTime,
-		UserId:             form.UserId,
-		Amount:             form.Amount,
+		UserId:             uidUint,
+		Amount:             amountInt,
 	}
 	history, err := c.coinRepo.Insert(&target)
 	if err != nil {
@@ -80,36 +87,39 @@ func (c *CoinUseCase) SendCoin(form *model.CoinSendForm) error {
 	// formのバリデーション
 	err := form.ValidateCoinSendForm()
 	if err != nil {
-		log.Log().Msg(fmt.Sprintf("バリデーションエラー CoinSendForm : %s", model.CreateJsonString(&form)))
+		log.Log().Msg(fmt.Sprintf("バリデーションエラー CoinSendForm : %s", common.CreateJsonString(&form)))
 		log.Error().Stack().Err(err).Msg("")
 		return c.op.OutputError(model.CreateErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 
 	// Sender/Receiverの残高確認
-	sender, err := c.userRepo.SelectById(form.Sender)
+	senderUidUint := common.StringToUint(form.Sender)
+	sender, err := c.userRepo.SelectById(senderUidUint)
 	if err != nil {
-		log.Log().Msg(fmt.Sprintf("Senderユーザー取得に失敗 user : %s", model.CreateJsonString(&sender)))
+		log.Log().Msg(fmt.Sprintf("Senderユーザー取得に失敗 user : %s", common.CreateJsonString(&sender)))
 		log.Error().Err(err).Send()
 		return c.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
-	receiver, err := c.userRepo.SelectById(form.Receiver)
+	receiverUidUint := common.StringToUint(form.Receiver)
+	receiver, err := c.userRepo.SelectById(receiverUidUint)
 	if err != nil {
-		log.Log().Msg(fmt.Sprintf("Receiverユーザー取得に失敗 user : %s", model.CreateJsonString(&receiver)))
+		log.Log().Msg(fmt.Sprintf("Receiverユーザー取得に失敗 user : %s", common.CreateJsonString(&receiver)))
 		log.Error().Err(err).Send()
 		return c.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
 	// Sender残高の確認
-	if *sender.CoinBalance < form.Amount {
+	amountInt, _ := strconv.Atoi(form.Amount)
+	if *sender.CoinBalance < amountInt {
 		// 消費量が残高を上回る場合はエラー
-		log.Log().Msg(fmt.Sprintf("コイン残高不足エラー user : %s", model.CreateJsonString(&sender)))
+		log.Log().Msg(fmt.Sprintf("コイン残高不足エラー user : %s", common.CreateJsonString(&sender)))
 		return c.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, "コイン残高不足エラー"))
 	}
 
 	// 残高の算出
-	senderBalance := *sender.CoinBalance + (-form.Amount)
-	receiverBalance := *receiver.CoinBalance + form.Amount
+	senderBalance := *sender.CoinBalance + (-amountInt)
+	receiverBalance := *receiver.CoinBalance + amountInt
 
 	// 残高の更新
 	sender.CoinBalance = &senderBalance
@@ -119,45 +129,44 @@ func (c *CoinUseCase) SendCoin(form *model.CoinSendForm) error {
 	_, err = c.userRepo.Update(receiver)
 	if err != nil {
 		log.Error().Err(err).Send()
-		return c.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
 	// Sender履歴の追加
 	operationTime := time.Now()
 	senderInsertion := models.CoinHistory{
-		Operation:          string(model.SEND),
+		Operation:          string(enum.SEND),
 		OperationTimestamp: operationTime,
-		UserId:             form.Sender,
-		Amount:             -(form.Amount),
+		UserId:             senderUidUint,
+		Amount:             -amountInt,
 	}
 
 	// Receiver履歴の追加
 	receiverInsertion := models.CoinHistory{
-		Operation:          string(model.RECEIVE),
+		Operation:          string(enum.RECEIVE),
 		OperationTimestamp: operationTime,
-		UserId:             form.Receiver,
-		Amount:             form.Amount,
+		UserId:             receiverUidUint,
+		Amount:             amountInt,
 	}
 	_, err = c.coinRepo.Insert(&senderInsertion)
 	_, err = c.coinRepo.Insert(&receiverInsertion)
 	if err != nil {
 		log.Error().Err(err).Send()
-		return c.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
-	return c.op.OutputCoinSend(model.CoinSendResponseFromDomainModel(form, *senderInfo.CoinBalance))
+	return c.op.OutputCoinSend(model.CoinSendResponseFromDomainModel(senderUidUint, receiverUidUint, amountInt, *senderInfo.CoinBalance))
 }
 
-func (c *CoinUseCase) SelectHistoryByUserId(uid uint) error {
+func (c *CoinUseCase) SelectHistoryByUserId(uid string) error {
 	// uidのバリデーション
-	err := validation.Validate(uid, validation.Required)
+	err := validation.Validate(uid, validation.Required, is.Digit)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg("")
 		return c.op.OutputError(model.CreateErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 
 	// idに紐づく履歴取得
-	histories, err := c.coinRepo.SelectHistoriesByUserId(uid)
+	uidUint := common.StringToUint(uid)
+	histories, err := c.coinRepo.SelectHistoriesByUserId(uidUint)
 	if err != nil {
 		log.Error().Err(err).Send()
 		return c.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, err.Error()))

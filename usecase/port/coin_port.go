@@ -5,7 +5,7 @@ import (
 )
 
 type CoinInputPort interface {
-	SelectHistoryByUserId(uid uint) error
+	SelectHistoryByUserId(uid string) error
 	AddUseCoin(form *model.CoinAddUseForm) error
 	SendCoin(form *model.CoinSendForm) error
 }

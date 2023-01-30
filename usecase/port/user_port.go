@@ -6,7 +6,7 @@ import (
 
 type UserInputPort interface {
 	RegisterUser(user *model.UserAddForm) error
-	GetBalanceByUserId(uid uint) error
+	GetBalanceByUserId(uid string) error
 }
 
 type UserOutputPort interface {

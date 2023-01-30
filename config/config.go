@@ -1,23 +1,16 @@
 package config
 
 const (
-	port       = "8081"
 	dbUser     = "admin"
 	dbPassword = "admin"
 	dbName     = "coin_db"
-	dbHost     = "localhost"
+	dbHost     = "coin_db"
 	dbPort     = "5433"
 )
 
 type AppConfig struct {
-	HTTPInfo       *HttpInfo
 	PostgreSQLInfo *PostgreSQLInfo
 }
-
-type HttpInfo struct {
-	Addr string
-}
-
 type PostgreSQLInfo struct {
 	User     string
 	Password string
@@ -27,12 +20,6 @@ type PostgreSQLInfo struct {
 }
 
 func LoadConfig() *AppConfig {
-	addr := ":" + port
-
-	httpInfo := &HttpInfo{
-		Addr: addr,
-	}
-
 	dbInfo := &PostgreSQLInfo{
 		User:     dbUser,
 		Password: dbPassword,
@@ -42,7 +29,6 @@ func LoadConfig() *AppConfig {
 	}
 
 	conf := AppConfig{
-		HTTPInfo:       httpInfo,
 		PostgreSQLInfo: dbInfo,
 	}
 

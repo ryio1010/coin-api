@@ -15,11 +15,13 @@ type PostgreSQLConnector struct {
 func NewPostgreSQLConnector() *PostgreSQLConnector {
 	conf := config.LoadConfig()
 	dsn := postgresConnInfo(*conf.PostgreSQLInfo)
+
 	conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
 
+	// gormのmigrate
 	err = conn.AutoMigrate(&model.User{}, &model.CoinHistory{})
 
 	return &PostgreSQLConnector{
@@ -28,14 +30,12 @@ func NewPostgreSQLConnector() *PostgreSQLConnector {
 }
 
 func postgresConnInfo(postgresInfo config.PostgreSQLInfo) string {
-	dataSourceName := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+	dataSourceName := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
+		postgresInfo.Host,
 		postgresInfo.User,
 		postgresInfo.Password,
-		postgresInfo.Host,
-		postgresInfo.Port,
 		postgresInfo.DbName,
 	)
-	fmt.Println(dataSourceName)
 
 	return dataSourceName
 }
