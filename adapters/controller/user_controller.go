@@ -5,6 +5,7 @@ import (
 	"coin-api/domain/repository"
 	"coin-api/usecase/model"
 	"coin-api/usecase/port"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
@@ -34,16 +35,18 @@ func NewUserController(outputFactory UserOutputFactory, inputFactory UserInputFa
 func (u *UserController) CreateUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// request情報をformにマッピング
-		var userModel model.UserAddForm
-		err := c.ShouldBind(&userModel)
+		var form model.UserAddForm
+		err := c.ShouldBind(&form)
 		if err != nil {
-			log.Error().Err(err)
+			// エラーの場合、ログを出力
+			log.Log().Msg(fmt.Sprintf("バインドエラー UserAddForm : %s", model.CreateJsonString(&form)))
+			log.Error().Err(err).Send()
 		}
 
 		// 登録処理実行
-		err = u.newInputPort(c).RegisterUser(&userModel)
+		err = u.newInputPort(c).RegisterUser(&form)
 		if err != nil {
-			log.Error().Err(err)
+			log.Error().Err(err).Send()
 		}
 	}
 }
@@ -57,7 +60,7 @@ func (u *UserController) GetBalanceById() gin.HandlerFunc {
 		// ユーザー情報取得処理実行
 		err := u.newInputPort(c).GetBalanceByUserId(uint(uidInt))
 		if err != nil {
-			log.Error().Err(err)
+			log.Error().Err(err).Send()
 		}
 	}
 }

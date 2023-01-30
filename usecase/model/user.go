@@ -22,6 +22,13 @@ type UserAddForm struct {
 	Password string `json:"password"`
 }
 
+func (u UserAddForm) ValidateUserAddForm() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.UserName, validation.Required, validation.Length(1, 20)),
+		validation.Field(&u.Password, validation.Required, validation.Length(1, 20)),
+	)
+}
+
 func UserFromDomainModel(m *model.User) *UserResponse {
 	u := &UserResponse{
 		UserId:   m.ID,
@@ -40,11 +47,4 @@ func UserBalanceFromDomainModel(m *model.User) *UserBalanceResponse {
 	}
 
 	return u
-}
-
-func (u UserAddForm) ValidateUserAddForm() error {
-	return validation.ValidateStruct(&u,
-		validation.Field(&u.UserName, validation.Required),
-		validation.Field(&u.Password, validation.Required),
-	)
 }

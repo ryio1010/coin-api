@@ -12,6 +12,7 @@ type CoinInputPort interface {
 
 type CoinOutputPort interface {
 	OutputCoin(coin *model.CoinResponse) error
+	OutputCoinSend(coin *model.CoinSendResponse) error
 	OutputCoinHistory(histories []*model.CoinHistoryResponse) error
-	OutputError(err model.ErrorResponse) error
+	OutputError(err *model.ErrorResponse) error
 }

@@ -3,6 +3,7 @@ package rdb
 import (
 	"coin-api/domain/model"
 	"coin-api/domain/repository"
+	"fmt"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 )
@@ -18,20 +19,26 @@ func NewCoinRepository(db *gorm.DB) repository.ICoinRepository {
 }
 
 func (cr *CoinRepository) SelectHistoriesByUserId(uid uint) ([]model.CoinHistory, error) {
+	// 取得用モデル定義
 	var histories []model.CoinHistory
+
+	// idに紐づく全履歴取得
 	result := cr.DB.Find(&histories, "userid=?", uid)
 	if result.Error != nil {
-		log.Fatal().Err(result.Error)
-		panic(result.Error)
+		// エラーまたはレコードを取得できない場合、ログを出力
+		log.Log().Msg(fmt.Sprintf("履歴取得処理でエラー発生 ユーザーID : %d", uid))
 	}
+
 	return histories, result.Error
 }
 
 func (cr *CoinRepository) Insert(history *model.CoinHistory) (*model.CoinHistory, error) {
+	// 履歴登録処理
 	result := cr.DB.Create(history)
 	if result.Error != nil {
-		log.Fatal().Err(result.Error)
-		panic(result.Error)
+		// エラーの場合、ログを出力
+		log.Log().Msg(fmt.Sprintf("履歴登録処理でエラー発生 履歴 : %s", model.CreateJsonStringFromHistoryModel(history)))
 	}
+
 	return history, result.Error
 }

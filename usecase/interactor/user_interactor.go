@@ -12,58 +12,58 @@ import (
 )
 
 type UserUseCase struct {
-	op       ports.UserOutputPort
-	userRepo repository.IUserRepository
+	op ports.UserOutputPort
+	ur repository.IUserRepository
 }
 
 func NewUserUseCase(uop ports.UserOutputPort, ur repository.IUserRepository) ports.UserInputPort {
 	return &UserUseCase{
-		op:       uop,
-		userRepo: ur,
+		op: uop,
+		ur: ur,
 	}
 }
 
-func (u *UserUseCase) RegisterUser(user *model.UserAddForm) error {
+func (u *UserUseCase) RegisterUser(form *model.UserAddForm) error {
 	// formのバリデーション
-	err := user.ValidateUserAddForm()
+	err := form.ValidateUserAddForm()
 	if err != nil {
-		log.Fatal().Err(err)
-		return u.op.OutputError(model.CreateResponse(http.StatusBadRequest, err.Error()))
+		log.Error().Stack().Err(err).Msg("")
+		return u.op.OutputError(model.CreateErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 
 	// パスワードハッシュ化
-	passwordHash, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	pwHash, _ := bcrypt.GenerateFromPassword([]byte(form.Password), bcrypt.DefaultCost)
 	// Insert対象データ作成
-	insertionTarget := models.User{
-		Username: user.UserName,
-		Password: string(passwordHash),
+	target := models.User{
+		Username: form.UserName,
+		Password: string(pwHash),
 	}
 
 	// ユーザー登録処理実行
-	insertedUser, err := u.userRepo.Insert(insertionTarget)
+	user, err := u.ur.Insert(&target)
 
 	if err != nil {
-		log.Fatal().Err(err)
-		return u.op.OutputError(model.CreateResponse(http.StatusBadRequest, err.Error()))
+		log.Error().Stack().Err(err).Msg("")
+		return u.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
-	return u.op.OutputUser(model.UserFromDomainModel(insertedUser))
+	return u.op.OutputUser(model.UserFromDomainModel(user))
 }
 
 func (u *UserUseCase) GetBalanceByUserId(uid uint) error {
 	// uidのバリデーション
 	err := validation.Validate(uid, validation.Required)
 	if err != nil {
-		log.Fatal().Err(err)
-		return u.op.OutputError(model.CreateResponse(http.StatusBadRequest, err.Error()))
+		log.Error().Stack().Err(err).Msg("")
+		return u.op.OutputError(model.CreateErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 
 	// ユーザー取得処理実行
-	user, err := u.userRepo.SelectById(uid)
+	user, err := u.ur.SelectById(uid)
 
 	if err != nil {
-		log.Fatal().Err(err)
-		return u.op.OutputError(model.CreateResponse(http.StatusBadRequest, err.Error()))
+		log.Error().Stack().Err(err).Msg("")
+		return u.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
 	return u.op.OutputUserBalance(model.UserBalanceFromDomainModel(user))

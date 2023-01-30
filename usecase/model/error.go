@@ -5,8 +5,8 @@ type ErrorResponse struct {
 	Message   string `json:"message"`
 }
 
-func CreateResponse(code int, msg string) ErrorResponse {
-	e := ErrorResponse{
+func CreateErrorResponse(code int, msg string) *ErrorResponse {
+	e := &ErrorResponse{
 		ErrorCode: code,
 		Message:   msg,
 	}
