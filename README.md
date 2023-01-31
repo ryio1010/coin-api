@@ -13,13 +13,12 @@
 ## 起動方法
 
 クローン
-
 1. git clone git@github.com:ryio1010/coin-api.git
 
-Dockerの起動
-
-1. docker-compose build
-2. docker-compose up -d
+Docker(API/DB)の起動
+1. cd coin-api
+2. docker-compose build
+3. docker-compose up -d
 
 ※Appログ確認 docker logs -f coin_api
 
