@@ -15,6 +15,10 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: coin_db
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 2s
+      retries: 3
 
   server:
     build:
@@ -22,7 +26,8 @@ services:
       dockerfile: ./docker/golang/Dockerfile
     container_name: coin_api
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - .:/go/src/app
     ports:
