@@ -6,6 +6,7 @@ import (
 	"coin-api/database"
 	"coin-api/usecase/interactor"
 	"coin-api/usecase/presenter"
+	"context"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,6 +19,7 @@ const (
 func InitRouter() *gin.Engine {
 	// Gin
 	g := gin.Default()
+	ctx := context.Background()
 
 	// DB接続
 	con := database.NewPostgreSQLConnector()
@@ -32,6 +34,9 @@ func InitRouter() *gin.Engine {
 	cip := interactor.NewCoinUseCase
 	cr := rdb.NewCoinRepository
 
+	// Transaction
+	tr := rdb.NewTxRepository
+
 	// userAPI
 	ug := g.Group(userApiRoot)
 	{
@@ -45,11 +50,11 @@ func InitRouter() *gin.Engine {
 	// coinAPI
 	cg := g.Group(coinApiRoot)
 	{
-		cc := controllers.NewCoinController(cop, cip, cr, ur, con)
+		cc := controllers.NewCoinController(cop, cip, cr, ur, tr, con)
 		// PUT AddUseCoinAPI
-		cg.PUT("", cc.AddUseCoin())
+		cg.PUT("", cc.AddUseCoin(ctx))
 		// PUT SendCoinAPI
-		cg.PUT("/send", cc.SendCoin())
+		cg.PUT("/send", cc.SendCoin(ctx))
 		// GET GetHistoriesById
 		cg.GET("/:userid", cc.GetHistoryByUserId())
 	}

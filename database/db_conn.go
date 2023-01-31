@@ -13,9 +13,11 @@ type PostgreSQLConnector struct {
 }
 
 func NewPostgreSQLConnector() *PostgreSQLConnector {
+	// dbConfigの読込
 	conf := config.LoadConfig()
 	dsn := postgresConnInfo(*conf.PostgreSQLInfo)
 
+	// db接続
 	conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
@@ -36,6 +38,5 @@ func postgresConnInfo(postgresInfo config.PostgreSQLInfo) string {
 		postgresInfo.Password,
 		postgresInfo.DbName,
 	)
-
 	return dataSourceName
 }

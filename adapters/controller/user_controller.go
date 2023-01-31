@@ -37,16 +37,14 @@ func (u *UserController) CreateUser() gin.HandlerFunc {
 		// request情報をformにマッピング
 		var form model.UserAddForm
 
-		err := c.ShouldBind(&form)
-		if err != nil {
+		if err := c.ShouldBind(&form); err != nil {
 			// エラーの場合、ログを出力
 			log.Log().Msg(fmt.Sprintf("バインドエラー UserAddForm : %s", common.CreateJsonString(&form)))
 			log.Error().Stack().Err(err).Send()
 		}
 
 		// ユーザー登録処理実行
-		err = u.newInputPort(c).RegisterUser(&form)
-		if err != nil {
+		if err := u.newInputPort(c).RegisterUser(&form); err != nil {
 			log.Error().Stack().Err(err).Send()
 		}
 	}
@@ -58,8 +56,7 @@ func (u *UserController) GetBalanceById() gin.HandlerFunc {
 		uid := c.Param("userid")
 
 		// コイン残高取得処理実行
-		err := u.newInputPort(c).GetBalanceByUserId(uid)
-		if err != nil {
+		if err := u.newInputPort(c).GetBalanceByUserId(uid); err != nil {
 			log.Error().Stack().Err(err).Send()
 		}
 	}

@@ -4,6 +4,7 @@ import (
 	"coin-api/common"
 	"coin-api/domain/model"
 	"coin-api/domain/repository"
+	"context"
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
@@ -27,29 +28,44 @@ func (cr *CoinRepository) SelectHistoriesByUserId(uid uint) ([]model.CoinHistory
 	result := cr.DB.Find(&histories, "userid=?", uid)
 	if result.Error != nil {
 		// エラーまたはレコードを取得できない場合、ログを出力
-		log.Log().Msg(fmt.Sprintf("履歴取得処理でエラー発生 ユーザーID : %d", uid))
+		log.Error().Msg(fmt.Sprintf("履歴取得処理でエラー発生 ユーザーID : %d", uid))
+		return nil, result.Error
 	}
 
 	return histories, result.Error
 }
 
-func (cr *CoinRepository) Insert(history *model.CoinHistory) (*model.CoinHistory, error) {
+func (cr *CoinRepository) Insert(ctx context.Context, history *model.CoinHistory) (*model.CoinHistory, error) {
+	// トランザクション取得
+	tr, ok := GetTx(ctx)
+	if !ok {
+		tr = cr.DB
+	}
+
 	// 履歴登録処理
-	result := cr.DB.Create(history)
+	result := tr.Create(history)
 	if result.Error != nil {
 		// エラーの場合、ログを出力
-		log.Log().Msg(fmt.Sprintf("履歴登録処理でエラー発生 履歴 : %s", common.CreateJsonString(history)))
+		log.Error().Msg(fmt.Sprintf("履歴登録処理でエラー発生 履歴 : %s", common.CreateJsonString(history)))
+		return nil, result.Error
 	}
 
 	return history, result.Error
 }
 
-func (cr *CoinRepository) BatchInsert(histories []*model.CoinHistory) ([]*model.CoinHistory, error) {
+func (cr *CoinRepository) BatchInsert(ctx context.Context, histories []*model.CoinHistory) ([]*model.CoinHistory, error) {
+	// トランザクション取得
+	tr, ok := GetTx(ctx)
+	if !ok {
+		tr = cr.DB
+	}
+
 	// 履歴登録処理
-	results := cr.DB.Create(histories)
+	results := tr.Create(histories)
 	if results.Error != nil {
 		// エラーの場合、ログを出力
-		log.Log().Msg(fmt.Sprintf("履歴一括登録処理でエラー発生 履歴 : %s", common.CreateJsonString(histories)))
+		log.Error().Msg(fmt.Sprintf("履歴一括登録処理でエラー発生 履歴 : %s", common.CreateJsonString(histories)))
+		return nil, results.Error
 	}
 
 	return histories, results.Error

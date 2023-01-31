@@ -28,8 +28,7 @@ func NewUserUseCase(uop ports.UserOutputPort, ur repository.IUserRepository) por
 
 func (u *UserUseCase) RegisterUser(form *model.UserAddForm) error {
 	// formのバリデーション
-	err := form.ValidateUserAddForm()
-	if err != nil {
+	if err := form.ValidateUserAddForm(); err != nil {
 		log.Log().Msg(fmt.Sprintf("バリデーションエラー UserAddForm : %s", common.CreateJsonString(&form)))
 		log.Error().Stack().Err(err)
 
@@ -46,7 +45,6 @@ func (u *UserUseCase) RegisterUser(form *model.UserAddForm) error {
 
 	// ユーザー登録処理実行
 	user, err := u.ur.Insert(&target)
-
 	if err != nil {
 		log.Error().Stack().Err(err)
 		return u.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, err.Error()), err)
@@ -57,16 +55,16 @@ func (u *UserUseCase) RegisterUser(form *model.UserAddForm) error {
 
 func (u *UserUseCase) GetBalanceByUserId(uid string) error {
 	// uidのバリデーション
-	err := validation.Validate(uid, validation.Required, is.Digit)
-	if err != nil {
+	if err := validation.Validate(uid, validation.Required, is.Digit); err != nil {
+		log.Error().Msg(fmt.Sprintf("バリデーションエラー ユーザーID : %s", uid))
 		log.Error().Stack().Err(err)
+
 		return u.op.OutputError(model.CreateErrorResponse(http.StatusBadRequest, err.Error()), err)
 	}
 
 	// ユーザー取得処理実行
 	uidUint := common.StringToUint(uid)
 	user, err := u.ur.SelectById(uidUint)
-
 	if err != nil {
 		log.Error().Stack().Err(err)
 		return u.op.OutputError(model.CreateErrorResponse(http.StatusInternalServerError, err.Error()), err)

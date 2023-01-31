@@ -53,6 +53,6 @@ Dockerの起動
 - コイン送金
     - method : PUT
     - URL : localhost:8081/v1/coin/send
-    - RequestJsonBody : {"sender": "1","receiver": "2","amount": "10"}
+    - RequestJsonBody : {"sender": "1","receiver": "2","amount": "100"}
 
 ※コイン追加消費のOperationはADD,USEのみ許可

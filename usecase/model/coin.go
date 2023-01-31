@@ -14,26 +14,10 @@ type CoinAddUseForm struct {
 	Amount    string `json:"amount"`
 }
 
-func (c CoinAddUseForm) ValidateCoinAddUseForm() error {
-	return validation.ValidateStruct(&c,
-		validation.Field(&c.UserId, validation.Required, is.Digit),
-		validation.Field(&c.Operation, validation.Required, validation.In(string(enum.ADD), string(enum.USE))),
-		validation.Field(&c.Amount, validation.Required, is.Digit),
-	)
-}
-
 type CoinSendForm struct {
 	Sender   string `json:"sender"`
 	Receiver string `json:"receiver"`
 	Amount   string `json:"amount"`
-}
-
-func (c CoinSendForm) ValidateCoinSendForm() error {
-	return validation.ValidateStruct(&c,
-		validation.Field(&c.Sender, validation.Required, is.Digit),
-		validation.Field(&c.Receiver, validation.Required, is.Digit),
-		validation.Field(&c.Amount, validation.Required, is.Digit),
-	)
 }
 
 type CoinResponse struct {
@@ -54,6 +38,22 @@ type CoinSendResponse struct {
 	Receiver      uint `json:"receiver"`
 	Amount        int  `json:"amount"`
 	SenderBalance int  `json:"sender_balance"`
+}
+
+func (c CoinAddUseForm) ValidateCoinAddUseForm() error {
+	return validation.ValidateStruct(&c,
+		validation.Field(&c.UserId, validation.Required, is.Digit),
+		validation.Field(&c.Operation, validation.Required, validation.In(string(enum.ADD), string(enum.USE))),
+		validation.Field(&c.Amount, validation.Required, is.Digit),
+	)
+}
+
+func (c CoinSendForm) ValidateCoinSendForm() error {
+	return validation.ValidateStruct(&c,
+		validation.Field(&c.Sender, validation.Required, is.Digit),
+		validation.Field(&c.Receiver, validation.Required, is.Digit),
+		validation.Field(&c.Amount, validation.Required, is.Digit),
+	)
 }
 
 func CoinResponseFromDomainModel(c *model.CoinHistory, balance int) *CoinResponse {
