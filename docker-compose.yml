@@ -9,6 +9,8 @@ services:
       - ./data:/var/lib/postgresql/data
     ports:
       - "5433:5432"
+    expose:
+      - "5433"
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
